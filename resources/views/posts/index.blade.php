@@ -53,7 +53,16 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            $2999
+                            <form action="{{route('posts.destroy', $item)}}" method="POST">
+                            @csrf
+                            @method('delete')
+                            <a href="{{route('posts.edit', $item)}}" class="mr-2">
+                                <i class="fas fa-edit text-black hover:text-xl"></i>
+                            </a>
+                            <button type="submit">
+                                <i class="fas fa-trash text-red-500 hover:text-xl"></i>
+                            </button>
+                            </form>
                         </td>
                     </tr>
                 @endforeach
@@ -64,4 +73,16 @@
     <div class="mt-2">
         {{ $posts->links() }}
     </div>
+@endsection
+@section('mensajes')
+    @if (session('info'))
+        <script>
+            Swal.fire({
+                icon: "success",
+                title: "{{session('info')}}",
+                showConfirmButton: false,
+                timer: 2000
+            });
+        </script>
+    @endif
 @endsection

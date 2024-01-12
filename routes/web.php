@@ -23,5 +23,6 @@ Route::get('/', function () {
 Route::get('/', [InicioController::class, 'home'])->name('home');
 Route::resource('categories', CategoryController::class);
 Route::resource('posts', PostController::class);
+Route::get('posts1/{category}', [PostController::class, 'verPostsCategoria'])->name('posts.verpostscategoria');
 
 

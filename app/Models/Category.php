@@ -16,4 +16,9 @@ class Category extends Model
     public function posts(): HasMany{
         return $this->hasMany(Post::class);
     }
+
+    //Metodo estatico para devolver nombre y id de categoria para los selects
+    public static function rellenarSelectsCategorias(){
+        return Category::select('id', 'nombre')->orderBy('nombre')->get();
+    }
 }

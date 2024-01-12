@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -13,7 +14,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts=Post::with('category')->orderBy('id', 'desc')->paginate(5);
+        $posts = Post::with('category')->orderBy('id', 'desc')->paginate(5);
         return view('posts.index', compact('posts'));
     }
 
@@ -22,7 +23,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        $categorias=Category::select('id', 'nombre')->orderBy('nombre')->get();
+        $categorias = Category::rellenarSelectsCategorias();
         return view('posts.nuevo', compact('categorias'));
     }
 
@@ -32,12 +33,23 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'titulo'=>['required', 'string', 'min:3', 'unique:posts,titulo'],
-            'contenido'=>['required', 'string', 'min:10'],
-            'publicado'=>['nullable'],
-            'category_id'=>['required', 'exists:categories,id'],
-            'imagen'=>['nullable', 'image', 'max:2048'],
+            'titulo' => ['required', 'string', 'min:3', 'unique:posts,titulo'],
+            'contenido' => ['required', 'string', 'min:10'],
+            'publicado' => ['nullable'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'imagen' => ['nullable', 'image', 'max:2048'],
         ]);
+        //Se llego aquí es por que las validaciones estan OK, vamos a guardar el registro
+        //1.- Guardamos la imagen en storage/app/public/posts
+        $ruta = ($request->imagen) ? $request->imagen->store('posts') : "posts/noimage.jpg";
+        Post::create([
+            'titulo' => ucfirst($request->titulo),
+            'contenido' => ucfirst($request->contenido),
+            'publicado' => ($request->publicado) ? "SI" : "NO",
+            'category_id' => $request->category_id,
+            'imagen' => $ruta,
+        ]);
+        return redirect()->route('posts.index')->with('info', 'Post Guardado.');
     }
 
     /**
@@ -53,7 +65,8 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        $categorias = Category::rellenarSelectsCategorias();
+        return view('posts.actualizar', compact('post', 'categorias'));
     }
 
     /**
@@ -61,7 +74,30 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'titulo' => ['required', 'string', 'min:3', 'unique:posts,titulo,' . $post->id],
+            'contenido' => ['required', 'string', 'min:10'],
+            'publicado' => ['nullable'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'imagen' => ['nullable', 'image', 'max:2048'],
+        ]);
+        //Se llego aquí es por que las validaciones estan OK, vamos a editar el registro
+        $ruta = $post->imagen;
+        if ($request->imagen) {
+            //hemos subido una imagen nueva borraremos laanterior salvo que sea la imagen por defecto
+            if (basename($post->imagen) != 'noimage.jpg') {
+                Storage::delete($post->imagen);
+            }
+            $ruta = $request->imagen->store('posts');
+        }
+        $post->update([
+            'titulo' => ucfirst($request->titulo),
+            'contenido' => ucfirst($request->contenido),
+            'publicado' => ($request->publicado) ? "SI" : "NO",
+            'category_id' => $request->category_id,
+            'imagen' => $ruta,
+        ]);
+        return redirect()->route('posts.index')->with('info', 'Post Actualizado.');
     }
 
     /**
@@ -69,6 +105,17 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        if (basename($post->imagen) != 'noimage.jpg') {
+            Storage::delete($post->imagen);
+        }
+        $post->delete();
+        return redirect()->route('posts.index')->with('info', 'Post Borrado.');
+    }
+
+    //metodo para ver los posts de una categoria especifica que mandaremos por parametro
+    public function verPostsCategoria(Category $category){
+        $posts=Post::where('category_id', $category->id)->where('publicado', "SI")->paginate(5);
+        $nombre=$category->nombre;
+       return view('posts.postscategoria', compact('posts', 'nombre'));
     }
 }

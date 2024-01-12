@@ -14,16 +14,19 @@
                 <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ $post->titulo }}</h5>
                 <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">{{ $post->contenido }}.</p>
                 <p class="mb-3">
-                    <span class="font-bold">Categoría: </span>{{$post->category->nombre}}
+                    <span class="font-bold">Categoría: </span>
+                    <a href="{{route('posts.verpostscategoria', $post->category->id)}}" class="px-2 py-1 rounded-xl bg-green-500 hover:bg-green-700 text-white">
+                        {{ $post->category->nombre }}
+                    </a>
                 </p>
                 <p class="mb-3">
-                    <span class="font-bold">Publicado: </span>{{$post->publicado}}
+                    <span class="font-bold">Publicado: </span>{{ $post->publicado }}
                 </p>
                 <p class="mb-3">
-                    <span class="font-bold">Fecha Creación: </span>{{$post->created_at->format('d/m/Y h:i:s')}}
+                    <span class="font-bold">Fecha Creación: </span>{{ $post->created_at->format('d/m/Y h:i:s') }}
                 </p>
                 <p class="mb-3">
-                    <span class="font-bold">Última modificación: </span>{{$post->updated_at->format('d/m/Y h:i:s')}}
+                    <span class="font-bold">Última modificación: </span>{{ $post->updated_at->format('d/m/Y h:i:s') }}
                 </p>
                 <a href="{{ route('posts.index') }}"
                     class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
